@@ -1,0 +1,73 @@
+---
+- name: Setup Minecraft server
+  hosts: minecraft
+  become: yes
+
+  tasks:
+    - name: Clean yum metadata
+      command: yum clean all
+
+    - name: Refresh yum cache
+      command: yum makecache
+
+    - name: Add Adoptium repo for Java 21
+      copy:
+        dest: /etc/yum.repos.d/adoptium.repo
+        content: |
+          [Adoptium]
+          name=Adoptium
+          baseurl=https://packages.adoptium.net/artifactory/rpm/amazonlinux/2/x86_64
+          enabled=1
+          gpgcheck=1
+          gpgkey=https://packages.adoptium.net/artifactory/api/gpg/key/public
+
+    - name: Install Java 21 from Adoptium
+      yum:
+        name: temurin-21-jdk
+        state: present
+
+    - name: Create Minecraft directory
+      file:
+        path: /home/ec2-user/minecraft
+        state: directory
+        owner: ec2-user
+        group: ec2-user
+
+    - name: Download Minecraft server jar
+      get_url:
+        url: https://piston-data.mojang.com/v1/objects/e6ec2f64e6080b9b5d9b471b291c33cc7f509733/server.jar
+        dest: /home/ec2-user/minecraft/server.jar
+        owner: ec2-user
+        group: ec2-user
+        mode: '0755'
+
+    - name: Accept EULA
+      copy:
+        dest: /home/ec2-user/minecraft/eula.txt
+        content: "eula=true\n"
+        owner: ec2-user
+        group: ec2-user
+
+    - name: Create systemd service for Minecraft
+      copy:
+        dest: /etc/systemd/system/minecraft.service
+        content: |
+          [Unit]
+          Description=Minecraft Server
+          After=network.target
+
+          [Service]
+          WorkingDirectory=/home/ec2-user/minecraft
+          ExecStart=/usr/bin/java -Xmx1024M -Xms1024M -jar server.jar nogui
+          Restart=on-failure
+          User=ec2-user
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload systemd and start service
+      systemd:
+        name: minecraft
+        daemon_reload: yes
+        enabled: yes
+        state: started
