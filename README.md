@@ -99,6 +99,45 @@ terraform apply
 This will:
 - Terraform will create a ssh key and store it in your local home directory (not VM) ```~/```
 - Launch EC2 instance without AWS console
-- Output the public ip/location of the key
+- Output the public ip, path of the key, instance id
+
+**Note down the IP for later use**
+
 6. Open up another command prompt to open up your linux terminal/local VM
-  
+7. Install Ansible to run the playbook to install/run minecraft, and nmap to verify the minecraft server status
+```bash
+sudo apt install ansible-core
+sudo apt install nmap
+```
+8. Copy the key from local machine over to VM, Run:
+```bash
+cp /mnt/c/Users/<your-username>/.ssh/mc_terraform_key.pem ~/
+chmod 400 ~/mc_terraform_key.pem
+```
+9. Modify inventory.ini, replace ```<your-ec2-public-ip>``` with the public ip we got from terraform
+10. On your VM, change directory to path of git clone, then run:
+```bash
+cd ansible
+ansible-playbook playbook.yml -i inventory.ini
+```
+This will:
+- Install Java 21
+- Download and set up the Minecraft server
+- Accept the EULA
+- Enable the server to auto-start on boot using systemd
+11. Verify Minecraft is running, run:
+  ```bash
+  nmap -sV -Pn -p T:25565 <your-ec2-public-ip>
+  ```
+12. Verify the reboot function works, run:
+```bash
+aws ec2 reboot-instances --instance-ids <instance-id> --region us-west-2
+```
+13. Run nmap again to check if the server is closed
+  ```bash
+  nmap -sV -Pn -p T:25565 <your-ec2-public-ip>
+  ```
+14. After 1-2 minutes, run nmap again to see if nmap is running again
+```bash
+  nmap -sV -Pn -p T:25565 <your-ec2-public-ip>
+  ```
