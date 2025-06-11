@@ -92,7 +92,6 @@ aws configure
 ```
 5. Run Terraform to Provision Infrastructure
 ```bash
-cd terraform
 terraform init
 terraform apply
 ```
