@@ -140,3 +140,5 @@ aws ec2 reboot-instances --instance-ids <instance-id> --region us-west-2
 ```bash
   nmap -sV -Pn -p T:25565 <your-ec2-public-ip>
   ```
+## Source
+- AWS Credential Configuration (SYSTEM ADMINISTRATION (CS_312_001_S2025) Lab Week 9)
