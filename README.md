@@ -45,3 +45,60 @@ aws configure
 
 and copy the values over to corresponding section
 
+### Environment
+- Terraform will generate private key over to
+```~/mc_terraform_key.pem```
+- Find your terraform install on local machine, and add it to environment variable
+
+## Broad Overview
+
+This project automates the end-to-end setup of a Minecraft server on AWS using Terraform and Ansible. It replaces all manual actions (like using the AWS Console or SSH) with infrastructure and configuration code.
+
+The automation pipeline includes the following stages:
+
+1. **Terraform (Infrastructure Provisioning)**
+   - Generates a new SSH key pair and saves the private key to the local machine.
+   - Provisions an EC2 instance running Amazon Linux 2.
+   - Create a new security group that allows SSH (port 22) and Minecraft traffic (port 25565).
+
+2. **Ansible (Server Configuration)**
+   - Copy the generated key from local to VM and change permission
+   - Installs Java 21 via the Adoptium package repository.
+   - Downloads the latest Minecraft server JAR.
+   - Accepts the EULA automatically.
+   - Sets up a `systemd` service to ensure the Minecraft server auto-starts on reboot.
+
+4. **Validation**
+   - Once the setup is complete, the user can verify the server is running by scanning port `25565` using `nmap`.
+
+This fully automated pipeline ensures the Minecraft server is ready for use immediately after running the Terraform and Ansible scripts, without any manual configuration or console interaction.
+
+## Tutorial (Window Based)
+1. Install terraform and aws cli on local device
+2. verify installation with
+```bash
+terraform -help
+aws --version
+```
+3. Clone the Repository
+```bash
+git clone https://github.com/practicalPro/Course-Project-pt2.git
+cd Course-Project-pt2/terraform
+```
+4. Set up Aws CLI Credentials
+Make sure your AWS CLI is configured with credentials that have access to EC2.
+```bash
+aws configure
+```
+5. Run Terraform to Provision Infrastructure
+```bash
+cd terraform
+terraform init
+terraform apply
+```
+This will:
+- Terraform will create a ssh key and store it in your local home directory (not VM) ```~/```
+- Launch EC2 instance without AWS console
+- Output the public ip/location of the key
+6. Open up another command prompt to open up your linux terminal/local VM
+  
